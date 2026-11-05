@@ -4,7 +4,7 @@ import {AlertTriangle,CheckCircle2,ClipboardList,LockKeyhole,Phone,ShieldCheck,S
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 const SUPPORT_EMAIL =
-  import.meta.env.VITE_SUPPORT_EMAIL || 'support@your-domain.com';
+  import.meta.env.VITE_SUPPORT_EMAIL || 'support@coolieglobal.com';
 
 const inputClass =
   'w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-[#FD9A00] disabled:opacity-60';
