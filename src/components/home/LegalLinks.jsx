@@ -1,0 +1,4 @@
+import { Link } from 'react-router-dom';
+export default function LegalLinks() {
+  return <section className="border-t border-white/10 py-10"><div className="container-width flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"><div><p className="font-extrabold">Questions about your data?</p><p className="mt-1 text-sm text-neutral-400">Read our policies or request account deletion.</p></div><div className="flex flex-wrap gap-3 text-sm font-bold"><Link to="/privacy-policy" className="rounded-lg border border-white/10 px-4 py-3 hover:border-[#ef111b]">Privacy Policy</Link><Link to="/terms" className="rounded-lg border border-white/10 px-4 py-3 hover:border-[#ef111b]">Terms & Conditions</Link><Link to="/account-deletion" className="rounded-lg bg-black px-4 py-3 text-white hover:bg-neutral-800">Delete account</Link></div></div></section>;
+}
