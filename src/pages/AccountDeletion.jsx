@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import {AlertTriangle,CheckCircle2,ClipboardList,LockKeyhole,Phone,ShieldCheck,Smartphone,ArrowLeft,RefreshCw,LoaderCircle,Mail,AlertCircle} from 'lucide-react';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'https://api.coolieglobal.com/api').replace(/\/+$/, '');
 const SUPPORT_EMAIL =
   import.meta.env.VITE_SUPPORT_EMAIL || 'support@coolieglobal.com';
 
@@ -13,16 +12,12 @@ export default function AccountDeletion() {
   const [step, setStep] = useState('phone');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
-  const [reason, setReason] = useState('');
   const [otp, setOtp] = useState('');
   const [requestId, setRequestId] = useState('');
-  const [verificationToken, setVerificationToken] = useState('');
-  const [confirmed, setConfirmed] = useState(false);
   const [status, setStatus] = useState({ kind: '', message: '' });
   const [loading, setLoading] = useState(false);
 
   const notify = (kind, message) => setStatus({ kind, message });
-
   const clearStatus = () => setStatus({ kind: '', message: '' });
 
   const fullPhoneNumber = () => {
@@ -30,7 +25,6 @@ export default function AccountDeletion() {
     return `${countryCode}${digits}`;
   };
 
-  // API helper: all API calls remain in this component.
   async function apiPost(endpoint, body) {
     if (!API_BASE) {
       throw new Error(
@@ -56,7 +50,7 @@ export default function AccountDeletion() {
     return data;
   }
 
-  // STEP 1: Send OTP.
+  // STEP 1: Verify phone exists + send OTP
   async function sendOtp(e) {
     e.preventDefault();
     clearStatus();
@@ -76,6 +70,7 @@ export default function AccountDeletion() {
     setLoading(true);
 
     try {
+      // Backend checks if user exists, generates OTP, sends via SMS gateway
       const data = await apiPost('/account/delete/send-otp', {
         phoneNumber: fullPhoneNumber(),
       });
@@ -86,7 +81,6 @@ export default function AccountDeletion() {
 
       setRequestId(data.requestId);
       setOtp('');
-      setVerificationToken('');
       setStep('otp');
 
       notify(
@@ -100,7 +94,7 @@ export default function AccountDeletion() {
     }
   }
 
-  // STEP 2: Verify OTP.
+  // STEP 2: Verify OTP
   async function verifyOtp(e) {
     e.preventDefault();
     clearStatus();
@@ -118,12 +112,6 @@ export default function AccountDeletion() {
         requestId,
         otp,
       });
-
-      if (!data.verificationToken) {
-        throw new Error('The API response must include verificationToken.');
-      }
-
-      setVerificationToken(data.verificationToken);
       setStep('confirm');
 
       notify(
@@ -137,7 +125,7 @@ export default function AccountDeletion() {
     }
   }
 
-  // Resend OTP.
+  // Resend OTP
   async function resendOtp() {
     clearStatus();
     setLoading(true);
@@ -162,44 +150,26 @@ export default function AccountDeletion() {
     }
   }
 
-  // STEP 3: Confirm deletion.
+  // STEP 3: Deactivate account directly (no reason, no confirmation checkbox)
   async function deleteAccount(e) {
     e.preventDefault();
     clearStatus();
 
-    if (!confirmed) {
-      notify('error', 'Please confirm your account deletion request.');
-      return;
-    }
-
-    if (!verificationToken) {
-      notify('error', 'Please verify your phone number first.');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const data = await apiPost('/account/delete/confirm', {
-        phoneNumber: fullPhoneNumber(),
-        verificationToken,
-        reason: reason.trim(),
-        confirmed: true,
-      });
+      const data = await apiPost('/account/delete/confirm', {phoneNumber: fullPhoneNumber()});
 
       setStep('success');
       setOtp('');
       setRequestId('');
-      setVerificationToken('');
-      setReason('');
-      setConfirmed(false);
 
       notify(
         'success',
-        data.message || 'Your account deletion has been processed.'
+        data.message || 'Your account has been deactivated.'
       );
     } catch (error) {
-      notify('error', error.message || 'Unable to process deletion.');
+      notify('error', error.message || 'Unable to deactivate account.');
     } finally {
       setLoading(false);
     }
@@ -214,15 +184,13 @@ export default function AccountDeletion() {
       setRequestId('');
     } else if (step === 'confirm') {
       setStep('otp');
-      setVerificationToken('');
-      setConfirmed(false);
     }
   }
 
   const steps = [
     { key: 'phone', label: 'Phone number' },
     { key: 'otp', label: 'Verify OTP' },
-    { key: 'confirm', label: 'Delete account' },
+    { key: 'confirm', label: 'Deactivate' },
   ];
 
   const activeIndex = steps.findIndex((item) => item.key === step);
@@ -256,13 +224,13 @@ export default function AccountDeletion() {
               </p>
               <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
                 {step === 'success'
-                  ? 'Account deletion complete'
-                  : 'Request account deletion'}
+                  ? 'Account deactivated'
+                  : 'Deactivate your account'}
               </h1>
               <p className="mt-3 text-sm leading-7 text-neutral-600">
                 {step === 'success'
-                  ? 'The server has responded to your deletion request.'
-                  : 'Request deletion of your Coolie account using your registered phone number. Verify your phone before confirming deletion.'}
+                  ? 'Your account has been deactivated and you will no longer receive any notifications.'
+                  : 'Enter your registered phone number to receive an OTP. After verifying, your account will be deactivated immediately.'}
               </p>
             </div>
           </div>
@@ -278,10 +246,10 @@ export default function AccountDeletion() {
                   <div>
                     <h2 className="font-bold">Before you continue</h2>
                     <p className="mt-2 text-sm leading-6 text-neutral-700">
-                      Account deletion may be irreversible. Certain records
-                      may need to be retained for legal, security, accounting
-                      or dispute-related reasons. Never share your OTP or
-                      password with support.
+                      Deactivating your account will sign you out and disable
+                      access. Certain records may need to be retained for
+                      legal, security, accounting or dispute-related reasons.
+                      Never share your OTP with anyone, including support.
                     </p>
                   </div>
                 </div>
@@ -301,8 +269,8 @@ export default function AccountDeletion() {
                   },
                   {
                     Icon: ShieldCheck,
-                    title: '3. Confirm deletion',
-                    desc: 'Confirm your account deletion request.',
+                    title: '3. Deactivate',
+                    desc: 'Your account will be deactivated.',
                   },
                 ].map(({ Icon, title, desc }) => (
                   <div
@@ -404,7 +372,7 @@ export default function AccountDeletion() {
                 ) : (
                   <Phone size={17} />
                 )}
-                {loading ? 'Sending OTP...' : 'Send OTP'}
+                {loading ? 'Checking account...' : 'Send OTP'}
               </button>
             </form>
           )}
@@ -489,44 +457,24 @@ export default function AccountDeletion() {
                 </div>
               </div>
 
-              <div>
-                <label
-                  htmlFor="reason"
-                  className="mb-2 block text-sm font-bold"
-                >
-                  Reason for deletion (optional)
-                </label>
-                <textarea
-                  id="reason"
-                  rows={3}
-                  maxLength={500}
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  disabled={loading}
-                  placeholder="Tell us why you want to delete your account"
-                  className={`${inputClass} resize-y`}
-                />
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle size={20} className="mt-0.5 text-red-700" />
+                  <div>
+                    <p className="font-bold text-red-900">
+                      Your account will be deactivated immediately
+                    </p>
+                    <p className="mt-1 text-sm text-red-800">
+                      You will be signed out and will not be able to log in
+                      again. Contact support if you want to reactivate.
+                    </p>
+                  </div>
+                </div>
               </div>
-
-              <label className="flex items-start gap-3 text-xs leading-6 text-neutral-600">
-                <input
-                  type="checkbox"
-                  checked={confirmed}
-                  onChange={(e) => setConfirmed(e.target.checked)}
-                  required
-                  disabled={loading}
-                  className="mt-1 h-4 w-4 accent-[#FD9A00]"
-                />
-                <span>
-                  I request deletion of the Coolie account associated with this
-                  phone number. I understand that certain information may be
-                  retained where required or permitted by law.
-                </span>
-              </label>
 
               <button
                 type="submit"
-                disabled={loading || !confirmed || !verificationToken}
+                disabled={loading}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-4 text-sm font-extrabold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
@@ -534,7 +482,7 @@ export default function AccountDeletion() {
                 ) : (
                   <LockKeyhole size={17} />
                 )}
-                {loading ? 'Processing deletion...' : 'Confirm Account Deletion'}
+                {loading ? 'Deactivating account...' : 'Deactivate My Account'}
               </button>
 
               <button
@@ -555,7 +503,7 @@ export default function AccountDeletion() {
                 <CheckCircle2 size={21} className="mt-0.5 text-green-700" />
                 <div>
                   <h2 className="font-bold text-green-900">
-                    Request processed
+                    Account deactivated
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-green-800">
                     {status.message}
@@ -595,20 +543,24 @@ export default function AccountDeletion() {
           <>
             <section className="mt-8">
               <h2 className="text-xl font-extrabold">
-                What happens after deletion?
+                What happens after deactivation?
               </h2>
               <ul className="mt-4 list-disc space-y-3 pl-5 text-sm leading-7 text-neutral-600">
                 <li>
                   Your phone number must be verified before the backend
-                  processes the deletion.
+                  deactivates your account.
                 </li>
                 <li>
-                  Eligible personal data will be deleted or anonymised
-                  according to applicable law and your published policy.
+                  Your account will be marked inactive and you will be signed
+                  out immediately.
                 </li>
                 <li>
                   Certain transaction, accounting, security or legally required
                   records may need to be retained.
+                </li>
+                <li>
+                  To reactivate, contact support from your registered phone
+                  number.
                 </li>
               </ul>
             </section>
@@ -622,7 +574,7 @@ export default function AccountDeletion() {
 
               <a
                 href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
-                  'Coolie account deletion request'
+                  'Coolie account deactivation request'
                 )}`}
                 className="mt-4 inline-flex items-center gap-3 break-all text-sm font-semibold text-neutral-800 hover:text-[#A96500]"
               >
@@ -635,7 +587,7 @@ export default function AccountDeletion() {
 
         <p className="mt-8 text-xs leading-6 text-neutral-500">
           Never send your password or OTP to support. This page relies on
-          backend verification before account deletion.
+          backend verification before account deactivation.
         </p>
       </div>
     </main>
