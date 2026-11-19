@@ -150,7 +150,7 @@ export default function AccountDeletion() {
     }
   }
 
-  // STEP 3: Deactivate account directly (no reason, no confirmation checkbox)
+  // STEP 3: Delete account directly (no reason, no confirmation checkbox)
   async function deleteAccount(e) {
     e.preventDefault();
     clearStatus();
@@ -166,10 +166,10 @@ export default function AccountDeletion() {
 
       notify(
         'success',
-        data.message || 'Your account has been deactivated.'
+        data.message || 'Your account has been deleted.'
       );
     } catch (error) {
-      notify('error', error.message || 'Unable to deactivate account.');
+      notify('error', error.message || 'Unable to delete account.');
     } finally {
       setLoading(false);
     }
@@ -190,7 +190,7 @@ export default function AccountDeletion() {
   const steps = [
     { key: 'phone', label: 'Phone number' },
     { key: 'otp', label: 'Verify OTP' },
-    { key: 'confirm', label: 'Deactivate' },
+    { key: 'confirm', label: 'Delete' },
   ];
 
   const activeIndex = steps.findIndex((item) => item.key === step);
@@ -224,13 +224,13 @@ export default function AccountDeletion() {
               </p>
               <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
                 {step === 'success'
-                  ? 'Account deactivated'
-                  : 'Deactivate your account'}
+                  ? 'Account deleted'
+                  : 'Delete your account'}
               </h1>
               <p className="mt-3 text-sm leading-7 text-neutral-600">
                 {step === 'success'
-                  ? 'Your account has been deactivated and you will no longer receive any notifications.'
-                  : 'Enter your registered phone number to receive an OTP. After verifying, your account will be deactivated immediately.'}
+                  ? 'Your account has been deleted and you will no longer receive any notifications.'
+                  : 'Enter your registered phone number to receive an OTP. After verifying, your account will be deleted immediately.'}
               </p>
             </div>
           </div>
@@ -269,8 +269,8 @@ export default function AccountDeletion() {
                   },
                   {
                     Icon: ShieldCheck,
-                    title: '3. Deactivate',
-                    desc: 'Your account will be deactivated.',
+                    title: '3. Delete',
+                    desc: 'Your account will be deleted.',
                   },
                 ].map(({ Icon, title, desc }) => (
                   <div
@@ -462,7 +462,7 @@ export default function AccountDeletion() {
                   <AlertTriangle size={20} className="mt-0.5 text-red-700" />
                   <div>
                     <p className="font-bold text-red-900">
-                      Your account will be deactivated immediately
+                      Your account will be deleted immediately
                     </p>
                     <p className="mt-1 text-sm text-red-800">
                       You will be signed out and will not be able to log in
@@ -482,7 +482,7 @@ export default function AccountDeletion() {
                 ) : (
                   <LockKeyhole size={17} />
                 )}
-                {loading ? 'Deactivating account...' : 'Deactivate My Account'}
+                {loading ? 'Deactivating account...' : 'Delete My Account'}
               </button>
 
               <button
@@ -503,7 +503,7 @@ export default function AccountDeletion() {
                 <CheckCircle2 size={21} className="mt-0.5 text-green-700" />
                 <div>
                   <h2 className="font-bold text-green-900">
-                    Account deactivated
+                    Account deleted
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-green-800">
                     {status.message}
@@ -548,7 +548,7 @@ export default function AccountDeletion() {
               <ul className="mt-4 list-disc space-y-3 pl-5 text-sm leading-7 text-neutral-600">
                 <li>
                   Your phone number must be verified before the backend
-                  deactivates your account.
+                  delete your account.
                 </li>
                 <li>
                   Your account will be marked inactive and you will be signed
