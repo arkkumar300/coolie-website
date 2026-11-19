@@ -1,5 +1,5 @@
 
-import LegalLayout from '../../components/LegalLayout';
+import LegalLayout from '../components/LegalLayout';
 
 const email =
   import.meta.env.VITE_SUPPORT_EMAIL || 'support@coolieglobal.com';
